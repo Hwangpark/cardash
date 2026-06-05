@@ -1,4 +1,8 @@
-export const FALLBACK_MAKES = ['현대', '기아', '쉐보레(GM대우)', '르노코리아(삼성)', 'BMW', '벤츠', '아우디', '볼보']
+export const FALLBACK_MAKES = [
+  '현대', '기아', '제네시스',
+  '쉐보레(GM대우)', '르노코리아(삼성)', 'KG모빌리티(쌍용)',
+  'BMW', '벤츠', '아우디', '볼보', '미니',
+]
 
 export const REGION_OPTIONS = ['서울', '경기', '인천', '부산', '대구', '광주', '대전']
 

@@ -20,7 +20,7 @@ app = FastAPI(title="CardDash API", version="0.1.0", lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://localhost:3001", "http://localhost:5173"],
+    allow_origins=["*"],   # 개발 환경 — 포트 변경 무관하게 허용
     allow_methods=["*"],
     allow_headers=["*"],
 )
