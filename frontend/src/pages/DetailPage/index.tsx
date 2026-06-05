@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useNavigate, useParams } from 'react-router-dom'
 import { analyzeCarDetail, fetchCarDetail } from '../../api/cars'
+import { resolveCarImageUrl } from '../../utils/images'
 import ScorePanel from './ScorePanel'
 
 export default function DetailPage() {
@@ -25,7 +26,7 @@ export default function DetailPage() {
   if (!data?.car) return <div className="page"><p className="status">차량을 찾을 수 없습니다.</p></div>
 
   const { car, score } = data
-  const imageUrl = car.images?.[0] ? `https://img.encar.com${car.images[0]}` : null
+  const imageUrl = resolveCarImageUrl(car.images?.[0], car.platform)
 
   return (
     <div className="page">
@@ -54,7 +55,7 @@ export default function DetailPage() {
                   onClick={() => analyze.mutate()}
                   disabled={analyze.isPending}
                 >
-                  {analyze.isPending ? '분석 중...' : '🔍 지금 분석하기'}
+                  {analyze.isPending ? '분석 중...' : '지금 분석하기'}
                 </button>
                 {analyze.isError && <p className="error-note">분석 중 오류가 발생했어요. 다시 시도해주세요.</p>}
               </div>

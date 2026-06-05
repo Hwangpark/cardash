@@ -3,6 +3,7 @@ export interface Car {
   platform: string
   external_id: string
   brand: string | null
+  model_group: string | null
   model: string | null
   year: number | null
   trim: string | null
@@ -42,9 +43,18 @@ export interface CarListResponse {
   size: number
 }
 
+/** /cars/filter-options 응답 — 필터 드롭다운용 */
+export interface CarFilterOptions {
+  brands: string[]
+  model_groups: Record<string, string[]>   // brand → model_group 목록
+  years: number[]
+  regions: string[]
+}
+
 export interface CarFilters {
   platform?: string
   brand?: string
+  model_group?: string
   model?: string
   year_min?: number
   year_max?: number
@@ -55,3 +65,5 @@ export interface CarFilters {
   page?: number
   size?: number
 }
+
+export type CarFilterValue = string | number | undefined

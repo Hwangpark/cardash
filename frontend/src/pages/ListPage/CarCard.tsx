@@ -1,12 +1,7 @@
 import { useNavigate } from 'react-router-dom'
 import type { Car } from '../../types/car'
-
-const PLATFORM_LABEL: Record<string, string> = {
-  encar: '엔카',
-  kcar: '케이카',
-  kbchachacha: 'KB차차차',
-  bobaedream: '보배드림',
-}
+import { resolveCarImageUrl } from '../../utils/images'
+import { PLATFORM_LABEL } from './filterOptions'
 
 interface Props {
   car: Car
@@ -14,9 +9,7 @@ interface Props {
 
 export default function CarCard({ car }: Props) {
   const navigate = useNavigate()
-  const imageUrl = car.images?.[0]
-    ? `https://img.encar.com${car.images[0]}`
-    : null
+  const imageUrl = resolveCarImageUrl(car.images?.[0], car.platform)
 
   return (
     <div className="car-card" onClick={() => navigate(`/cars/${car.id}`)}>

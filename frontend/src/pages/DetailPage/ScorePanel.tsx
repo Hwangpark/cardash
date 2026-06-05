@@ -28,10 +28,10 @@ export default function ScorePanel({ score }: Props) {
         <div className="score-total">{score.total}점</div>
       </div>
       {score.penalty > 0 && (
-        <p className="penalty-note">⚠ 비공개 이력으로 {score.penalty}점 감점</p>
+        <p className="penalty-note">비공개 이력으로 {score.penalty}점 감점</p>
       )}
       {score.no_insurance_data && (
-        <p className="penalty-note">ℹ 보험이력 미제공 — 최대 A등급</p>
+        <p className="penalty-note">보험이력 미제공으로 최대 A등급</p>
       )}
       <div className="score-items">
         {ITEMS.map(({ key, label, max }) => {
