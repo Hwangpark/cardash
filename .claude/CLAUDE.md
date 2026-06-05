@@ -202,6 +202,37 @@ CRAWL_INTERVAL_HOURS=6
 
 ---
 
+## 코딩 규칙 (항상 준수)
+
+### 함수 길이
+- **함수 하나는 30줄 이하**. 초과하면 반드시 분리한다.
+- 역할이 하나인 함수만 작성한다. 여러 일을 하면 쪼갠다.
+
+### 불필요한 코드 제거
+- 사용하지 않는 함수, import, 변수는 즉시 삭제한다.
+- 주석으로 막아둔 dead code는 남기지 않는다.
+- TODO/FIXME는 실제로 처리하거나 이슈로 등록한다.
+
+### 폴더 & 파일 구조
+- **기능(feature)/API 단위로 폴더를 나눈다.**
+- 백엔드: `routers/`, `crawlers/`, `scoring/` 각 파일은 단일 도메인만 담당.
+- 프론트엔드: 페이지별 폴더 아래 컴포넌트·훅·타입을 함께 둔다.
+  ```
+  pages/
+    ListPage/
+      index.tsx
+      useCarList.ts
+      CarCard.tsx
+  ```
+- 파일 하나가 200줄을 넘으면 분리를 검토한다.
+
+### 네이밍
+- 함수명은 동사로 시작 (`fetchCars`, `scoreAccident`, `normalizeRaw`).
+- 불린 변수/함수는 `is`, `has`, `can` 접두사 (`isDealer`, `hasInsurance`).
+- 상수는 UPPER_SNAKE_CASE.
+
+---
+
 ## Git 워크플로우 & 코드 리뷰
 
 ### PR 전 체크리스트
