@@ -3,12 +3,11 @@ from typing import Optional
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from crawlers import CRAWLERS
 from database import get_db
 from services.category_service import build_category_context, refresh_categories
 
 router = APIRouter(prefix="/admin", tags=["admin"])
-
-SUPPORTED_CRAWLERS = {"encar"}
 
 
 @router.post("/crawl")
@@ -22,19 +21,25 @@ async def trigger_crawl(
     db: AsyncSession = Depends(get_db),
 ):
     """크롤 트리거.
-    - category_id: vehicle_categories 테이블 기반 필터
-    - make + model_group: 직접 필터 (제조사/모델그룹명으로 바로 지정 가능)
+    - platform: encar | kcar | kbchachacha | bobaedream
+    - category_id: vehicle_categories 테이블 기반 필터 (엔카 전용)
+    - make + model_group: 제조사/모델그룹 직접 지정 (엔카 전용)
     """
     _validate_platform(platform)
     category = await _resolve_category(db, platform, category_id, make, model_group)
+    CrawlerClass = CRAWLERS[platform]
 
     async def run():
-        from crawlers.encar import EncarCrawler
-        crawler = EncarCrawler()
+        crawler = CrawlerClass()
         await crawler.run(max_pages=max_pages, category=category)
 
     background_tasks.add_task(run)
-    return {"status": "started", "platform": platform, "category": category}
+    return {
+        "status": "started",
+        "platform": platform,
+        "category": category,
+        "max_pages": max_pages,
+    }
 
 
 @router.post("/categories/refresh")
@@ -49,9 +54,18 @@ async def refresh_platform_categories(
         raise HTTPException(status_code=422, detail=str(exc)) from exc
 
 
+@router.get("/platforms")
+async def list_platforms():
+    """지원 플랫폼 목록"""
+    return {"platforms": list(CRAWLERS.keys())}
+
+
 def _validate_platform(platform: str):
-    if platform not in SUPPORTED_CRAWLERS:
-        raise HTTPException(status_code=422, detail=f"Unsupported platform: {platform}")
+    if platform not in CRAWLERS:
+        raise HTTPException(
+            status_code=422,
+            detail=f"Unsupported platform: {platform}. Available: {list(CRAWLERS.keys())}",
+        )
 
 
 async def _resolve_category(
@@ -61,7 +75,6 @@ async def _resolve_category(
     make: str | None,
     model_group: str | None,
 ) -> dict | None:
-    # category_id 우선
     if category_id:
         category = await build_category_context(db, category_id)
         if not category:
@@ -70,12 +83,7 @@ async def _resolve_category(
             raise HTTPException(status_code=422, detail="Category platform mismatch")
         return category
 
-    # make / model_group 직접 지정
     if make or model_group:
-        return {
-            "platform": platform,
-            "make_code": make,
-            "model_group_code": model_group,
-        }
+        return {"platform": platform, "make_code": make, "model_group_code": model_group}
 
     return None
