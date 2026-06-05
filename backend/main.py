@@ -4,7 +4,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from database import engine
-from models import Car, PriceHistory, Score  # noqa: F401 — Alembic 인식용
+from models import Car, PriceHistory, Score, VehicleCategory  # noqa: F401 — Alembic 인식용
 from database import Base
 from routers import admin, cars
 
@@ -20,7 +20,7 @@ app = FastAPI(title="CardDash API", version="0.1.0", lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3001", "http://localhost:3000"],
+    allow_origins=["http://localhost:3000", "http://localhost:3001", "http://localhost:5173"],
     allow_methods=["*"],
     allow_headers=["*"],
 )
