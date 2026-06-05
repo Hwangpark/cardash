@@ -3,6 +3,9 @@
 .env.local
 .env.*.local
 
+# MCP (DB 접속 정보 포함)
+.mcp.json
+
 # Python
 __pycache__/
 *.py[cod]
