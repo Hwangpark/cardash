@@ -1,7 +1,7 @@
 const ABSOLUTE_URL_PATTERN = /^(https?:|data:|blob:)/i
-const ENCAR_IMAGE_BASE_URL = 'https://img.encar.com'
+// 실제 Encar CDN: ci.encar.com/carpicture (img.encar.com 아님)
 const PLATFORM_IMAGE_BASE_URL: Record<string, string> = {
-  encar: ENCAR_IMAGE_BASE_URL,
+  encar: 'https://ci.encar.com/carpicture',
 }
 const PROTOCOL_RELATIVE_URL_PATTERN = /^\/\//
 
