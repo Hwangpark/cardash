@@ -1,0 +1,26 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if echo \"$CLAUDE_TOOL_INPUT\" | grep -q \"git commit\"; then echo \"[훅] 커밋 완료 — type-check가 필요하면 npm run type-check 실행\"; fi"
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if echo \"$CLAUDE_TOOL_INPUT\" | grep -q \"git push\"; then echo \"[PR 체크리스트] 1) type-check  2) lint  3) /code-review  4) PR 설명 Why/What 포함\"; fi"
+          }
+        ]
+      }
+    ]
+  }
+}
