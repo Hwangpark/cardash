@@ -1,36 +1,55 @@
 import { useQuery } from '@tanstack/react-query'
-import { useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { fetchCars } from '../../api/cars'
 import type { CarFilterValue, CarFilters } from '../../types/car'
 
-const normalizeFilterValue = (value: CarFilterValue) => {
-  if (typeof value === 'string') return value.trim() || undefined
-  return value
-}
+const NUM_KEYS = new Set<keyof CarFilters>(['year_min', 'year_max', 'price_min', 'price_max', 'mileage_max', 'page', 'size'])
 
-const normalizeFilterPatch = (patch: Partial<CarFilters>) => {
-  return Object.fromEntries(
-    Object.entries(patch).map(([key, value]) => [key, normalizeFilterValue(value)])
-  )
+const parseFilters = (params: URLSearchParams): CarFilters => {
+  const filters: CarFilters = { page: 1, size: 20 }
+  params.forEach((value, key) => {
+    const k = key as keyof CarFilters
+    if (NUM_KEYS.has(k)) (filters as any)[k] = Number(value)
+    else (filters as any)[k] = value
+  })
+  return filters
 }
 
 export const useCarList = () => {
-  const [filters, setFilters] = useState<CarFilters>({ page: 1, size: 20 })
+  const [searchParams, setSearchParams] = useSearchParams()
+  const filters = parseFilters(searchParams)
 
   const query = useQuery({
-    queryKey: ['cars', filters],
+    queryKey: ['cars', Object.fromEntries(searchParams)],
     queryFn: () => fetchCars(filters),
+    placeholderData: prev => prev,
   })
 
   const setFilter = (key: keyof CarFilters, value: CarFilterValue) => {
-    setFilters(prev => ({ ...prev, [key]: normalizeFilterValue(value), page: 1 }))
+    setSearchParams(prev => {
+      if (value !== undefined && value !== '') prev.set(key, String(value))
+      else prev.delete(key)
+      prev.set('page', '1')
+      return prev
+    }, { replace: true })
   }
 
   const setFilterValues = (patch: Partial<CarFilters>) => {
-    setFilters(prev => ({ ...prev, ...normalizeFilterPatch(patch), page: 1 }))
+    setSearchParams(prev => {
+      Object.entries(patch).forEach(([key, value]) => {
+        if (value !== undefined && value !== '') prev.set(key, String(value))
+        else prev.delete(key)
+      })
+      prev.set('page', '1')
+      return prev
+    }, { replace: true })
   }
 
-  const setPage = (page: number) => setFilters(prev => ({ ...prev, page }))
+  const setPage = (page: number) => {
+    setSearchParams(prev => { prev.set('page', String(page)); return prev }, { replace: true })
+  }
 
-  return { ...query, filters, setFilter, setFilterValues, setPage }
+  const resetFilters = () => setSearchParams({ page: '1', size: '20' }, { replace: true })
+
+  return { ...query, filters, setFilter, setFilterValues, setPage, resetFilters }
 }

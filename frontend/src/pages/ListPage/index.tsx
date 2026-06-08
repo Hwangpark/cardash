@@ -5,7 +5,7 @@ import { useCarList } from './useCarList'
 
 export default function ListPage() {
   const { data: filterOptions } = useCarCategories()
-  const { data, isLoading, filters, setFilter, setFilterValues, setPage } = useCarList()
+  const { data, isLoading, isFetching, filters, setFilter, setFilterValues, setPage, resetFilters } = useCarList()
 
   const currentPage = filters.page ?? 1
   const hasMore = (data?.items.length ?? 0) >= (filters.size ?? 20)
@@ -19,19 +19,20 @@ export default function ListPage() {
         filters={filters}
         setFilter={setFilter}
         setFilterValues={setFilterValues}
+        resetFilters={resetFilters}
       />
 
-      {isLoading && <p className="status">불러오는 중...</p>}
+      {(isLoading || isFetching) && <div className="loading-bar" />}
+
+      {!isLoading && data?.items.length === 0 && (
+        <p className="status">검색 결과가 없어요. 필터를 조정해보세요.</p>
+      )}
 
       <div className="car-grid">
         {data?.items.map(car => <CarCard key={car.id} car={car} />)}
       </div>
 
-      {!isLoading && data?.items.length === 0 && (
-        <p className="status">검색 결과가 없습니다.</p>
-      )}
-
-      {data && (
+      {data && data.items.length > 0 && (
         <div className="pagination">
           <button disabled={currentPage === 1} onClick={() => setPage(currentPage - 1)}>이전</button>
           <span>{currentPage} 페이지</span>
