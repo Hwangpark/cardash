@@ -47,8 +47,10 @@ docker compose up -d postgres redis
 
 ### 2단계 — 백엔드 실행
 
+> ⚠️ `cardash/backend/` 폴더 안에서 실행해야 합니다.
+
 ```powershell
-cd backend
+cd C:\Project\cardash\backend
 $env:DATABASE_URL = "postgresql+asyncpg://cardash:cardash1234@localhost:5433/cardash"
 $env:REDIS_URL    = "redis://localhost:6379/0"
 .\.venv\Scripts\uvicorn main:app --reload --port 8000
@@ -61,8 +63,10 @@ API 문서: http://localhost:8000/docs
 
 ### 3단계 — 프론트엔드 실행
 
+> ⚠️ `cardash/frontend/` 폴더 안에서 실행해야 합니다.
+
 ```powershell
-cd frontend
+cd C:\Project\cardash\frontend
 npm run dev
 ```
 
