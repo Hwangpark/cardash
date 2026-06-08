@@ -3,8 +3,9 @@ import type { Car } from '../../types/car'
 import { resolveCarImageUrl } from '../../utils/images'
 import { PLATFORM_LABEL } from './filterOptions'
 
-interface Props {
-  car: Car
+const fmtKm = (km?: number | null) => {
+  if (!km) return '-'
+  return km >= 10000 ? `${(km / 10000).toFixed(0)}만km` : `${km.toLocaleString()}km`
 }
 
 export default function CarCard({ car }: Props) {
@@ -13,19 +14,31 @@ export default function CarCard({ car }: Props) {
 
   return (
     <div className="car-card" onClick={() => navigate(`/cars/${car.id}`)}>
-      <div className="car-card-image">
+      <div className="car-img-wrap">
         {imageUrl
-          ? <img src={imageUrl} alt={car.model ?? ''} />
-          : <div className="car-card-no-image">이미지 없음</div>
+          ? <img src={imageUrl} alt={car.model ?? ''} loading="lazy" />
+          : <div className="car-img-empty"><span>📷</span></div>
         }
-        <span className="platform-badge">{PLATFORM_LABEL[car.platform] ?? car.platform}</span>
+        <span className="platform-tag">{PLATFORM_LABEL[car.platform] ?? car.platform}</span>
       </div>
-      <div className="car-card-body">
-        <p className="car-name">{car.brand} {car.model}</p>
-        <p className="car-sub">{car.year}년 · {car.mileage?.toLocaleString()}km · {car.fuel}</p>
-        <p className="car-price">{car.price?.toLocaleString()}만원</p>
-        <p className="car-region">{car.region}</p>
+
+      <div className="car-body">
+        <div className="car-title">
+          <span className="car-brand">{car.brand}</span>
+          <span className="car-model">{car.model}</span>
+        </div>
+        <div className="car-chips">
+          {car.year && <span className="chip">{car.year}년</span>}
+          <span className="chip">{fmtKm(car.mileage)}</span>
+          {car.fuel && <span className="chip">{car.fuel}</span>}
+        </div>
+        <div className="car-footer">
+          <span className="car-price">{car.price?.toLocaleString()}만원</span>
+          {car.region && <span className="car-loc">📍{car.region}</span>}
+        </div>
       </div>
     </div>
   )
 }
+
+interface Props { car: Car }
