@@ -1,13 +1,20 @@
 from typing import Optional
 
-from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query
+from fastapi import APIRouter, BackgroundTasks, Depends, Header, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from config import settings
 from crawlers import CRAWLERS
 from database import get_db
 from services.category_service import build_category_context, refresh_categories
 
-router = APIRouter(prefix="/admin", tags=["admin"])
+
+def require_admin_token(x_admin_token: str = Header(...)):
+    if x_admin_token != settings.admin_token:
+        raise HTTPException(status_code=401, detail="Invalid admin token")
+
+
+router = APIRouter(prefix="/admin", tags=["admin"], dependencies=[Depends(require_admin_token)])
 
 
 @router.post("/crawl")
@@ -30,8 +37,12 @@ async def trigger_crawl(
     CrawlerClass = CRAWLERS[platform]
 
     async def run():
-        crawler = CrawlerClass()
-        await crawler.run(max_pages=max_pages, category=category)
+        try:
+            crawler = CrawlerClass()
+            await crawler.run(max_pages=max_pages, category=category)
+        except Exception as exc:
+            import traceback
+            print(f"[admin/crawl] {platform} error: {exc}\n{traceback.format_exc()}")
 
     background_tasks.add_task(run)
     return {

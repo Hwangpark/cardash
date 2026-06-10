@@ -15,6 +15,8 @@ DEFAULT_WEIGHTS = {
     "owner_changes": 10,
 }
 
+NO_INSURANCE_MAX_TOTAL = 89  # grade.py A+ 임계값(90) 미만으로 유지
+
 
 def calculate_score(car_data: dict, weights: dict | None = None) -> dict:
     w = {**DEFAULT_WEIGHTS, **(weights or {})}
@@ -34,11 +36,9 @@ def calculate_score(car_data: dict, weights: dict | None = None) -> dict:
     }
 
     if no_insurance:
-        estimated_accident = w["accident"] * 0.40
-        rest = sum(v for k, v in scores.items() if k != "accident" and v is not None)
-        total = round(estimated_accident + rest)
-    else:
-        total = round(sum(v for v in scores.values() if v is not None))
+        scores["accident"] = w["accident"] * 0.40
+
+    total = round(sum(v for v in scores.values() if v is not None))
 
     penalty = 0
     if car_data.get("isInsurancePrivate") or car_data.get("isInspectionPrivate"):
@@ -47,9 +47,14 @@ def calculate_score(car_data: dict, weights: dict | None = None) -> dict:
 
     total = max(0, min(100, total))
 
+    if no_insurance:
+        total = min(total, NO_INSURANCE_MAX_TOTAL)
+
+    grade = get_grade(total)
+
     return {
         "total":            total,
-        "grade":            get_grade(total),
+        "grade":            grade,
         "accident":         scores["accident"] or 0,
         "mileage":          scores["mileage"],
         "price":            scores["price"],
@@ -58,4 +63,5 @@ def calculate_score(car_data: dict, weights: dict | None = None) -> dict:
         "owner_changes":    scores["owner_changes"],
         "penalty":          penalty,
         "no_insurance_data": no_insurance,
+        "insurance_fetch_status": car_data.get("insuranceFetchStatus", "not_applicable"),
     }
