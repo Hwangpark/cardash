@@ -8,11 +8,15 @@ export default function ListPage() {
   const { data, isLoading, isFetching, filters, setFilter, setFilterValues, setPage, resetFilters } = useCarList()
 
   const currentPage = filters.page ?? 1
-  const hasMore = (data?.items.length ?? 0) >= (filters.size ?? 20)
+  const hasMore = data?.has_next ?? false
+  const title = [filters.brand, filters.model_group].filter(Boolean).join(' ') || '전체 매물'
 
   return (
     <div className="page">
-      <h1 className="page-title">중고차 통합 대시보드</h1>
+      <div className="page-header">
+        <h1 className="page-title">{title}</h1>
+        {data && <p className="page-sub">{data.items.length}개 매물 · {currentPage} 페이지</p>}
+      </div>
 
       <FilterPanel
         options={filterOptions}
