@@ -13,6 +13,11 @@ IMG_BASE = "https:"
 # 국산/수입 구분 (gubun)
 GUBUN_LIST = ["K", "I"]
 
+# (브랜드명, 모델그룹명) → 보배드림 maker_no/group_no
+CATEGORY_CODES = {
+    ("제네시스", "G70"): {"maker_no": "1010", "group_no": "935"},
+}
+
 KNOWN_BRANDS = {
     "현대", "기아", "제네시스", "쌍용", "쉐보레", "대우", "르노", "삼성",
     "BMW", "벤츠", "아우디", "폭스바겐", "포르쉐", "볼보", "미니", "렉서스",
@@ -29,12 +34,22 @@ class BobaedreamCrawler(BaseCrawler):
     DELAY_MAX = 7.0
 
     async def fetch_list(self, page: int, category: dict[str, Any] | None = None) -> list[dict]:
+        codes = self._category_codes(category)
+        gubuns = ["K"] if codes else GUBUN_LIST
+
         results = []
-        for gubun in GUBUN_LIST:
-            html = await self.get_html(LIST_URL, params={"gubun": gubun, "page": page})
+        for gubun in gubuns:
+            params = {"gubun": gubun, "page": page, **codes} if codes else {"gubun": gubun, "page": page}
+            html = await self.get_html(LIST_URL, params=params)
             if html:
                 results.extend(self._parse_list(html, gubun))
         return results
+
+    def _category_codes(self, category: dict[str, Any] | None) -> dict[str, str] | None:
+        if not category:
+            return None
+        key = (category.get("make_code"), category.get("model_group_code"))
+        return CATEGORY_CODES.get(key)
 
     async def fetch_detail(self, external_id: str) -> dict:
         return {}  # 리스트에서 충분한 정보 수집
@@ -50,6 +65,7 @@ class BobaedreamCrawler(BaseCrawler):
             "platform": self.PLATFORM,
             "external_id": raw["external_id"],
             "brand": brand,
+            "model_group": model.split()[0] if model else None,
             "model": model,
             "year": raw.get("year"),
             "price": raw.get("price"),
@@ -120,18 +136,16 @@ class BobaedreamCrawler(BaseCrawler):
         }
 
     def _extract_title(self, el: Tag) -> str | None:
-        for tag in ("h3", "h4", "h2", "strong", "b"):
-            node = el.find(tag)
-            if node:
-                text = node.get_text(strip=True)
-                if len(text) > 3:
-                    return text
-        # 첫 번째 <a> 텍스트 시도
-        a = el.find("a")
-        if a:
-            text = a.get_text(strip=True)
-            if len(text) > 3:
-                return text
+        # bobaedream: <p class="tit ellipsis"><a title="차량명">...</a></p>
+        tit = el.find("p", class_=re.compile(r"\btit\b"))
+        if tit:
+            a = tit.find("a")
+            if a:
+                return a.get("title") or a.get_text(strip=True) or None
+        for a_tag in el.find_all("a"):
+            t = a_tag.get("title", "").strip()
+            if t and len(t) > 3:
+                return t
         return None
 
     def _parse_price(self, text: str) -> int | None:
@@ -196,7 +210,7 @@ class BobaedreamCrawler(BaseCrawler):
             src = img.get("src", "")
             if "bobaedream" in src or "CyberCar" in src:
                 if src.startswith("//"):
-                    src = IMG_BASE + src
+                    src = "https:" + src
                 imgs.append(src)
         return imgs
 
