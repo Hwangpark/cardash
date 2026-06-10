@@ -4,6 +4,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { analyzeCarDetail, fetchCarDetail } from '../../api/cars'
 import { resolveCarImageUrl } from '../../utils/images'
 import { getPlatformLabel } from '../ListPage/filterOptions'
+import AccidentHistory from './AccidentHistory'
 import ScorePanel from './ScorePanel'
 
 export default function DetailPage() {
@@ -85,7 +86,12 @@ export default function DetailPage() {
       {/* 점수 패널 */}
       <div className="detail-score-section">
         {score
-          ? <ScorePanel score={score} />
+          ? (
+            <>
+              <ScorePanel score={score} sourceUrl={car.url} />
+              <AccidentHistory records={score.accident_history} hasInsuranceData={!score.no_insurance_data} />
+            </>
+          )
           : (
             <div className="analyze-box">
               <div className="analyze-icon">🔍</div>

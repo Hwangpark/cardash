@@ -24,7 +24,7 @@ const ITEMS = [
   { key: 'owner_changes', label: '소유주변경', icon: '👤', max: 10 },
 ] as const
 
-export default function ScorePanel({ score }: { score: Score }) {
+export default function ScorePanel({ score, sourceUrl }: { score: Score; sourceUrl?: string | null }) {
   const meta  = GRADE_META[score.grade]  ?? GRADE_META['C']
   const color = GRADE_BAR[score.grade] ?? '#6366f1'
 
@@ -46,7 +46,18 @@ export default function ScorePanel({ score }: { score: Score }) {
       {score.penalty > 0 && (
         <div className="score-alert">⚠️ 비공개 이력으로 {score.penalty}점 감점 적용</div>
       )}
-      {score.no_insurance_data && (
+      {score.insurance_fetch_status === 'viewable_unfetched' && (
+        <div className="score-alert info">
+          ℹ️ 보험이력 조회 가능 — 자동 수집에 실패해 추정치(40%)가 적용됐어요.{' '}
+          {sourceUrl && <a href={sourceUrl} target="_blank" rel="noreferrer">원본에서 직접 확인</a>}
+        </div>
+      )}
+      {score.insurance_fetch_status === 'reregistered_listing' && (
+        <div className="score-alert info">
+          ℹ️ 보험이력 조회 불가 — 재등록/매물갱신으로 추정되어 원본에서도 이력 확인이 어려울 수 있어요. (추정치 40% 적용)
+        </div>
+      )}
+      {(score.insurance_fetch_status === 'unavailable' || score.insurance_fetch_status === 'not_applicable') && (
         <div className="score-alert info">ℹ️ 보험이력 미제공 차량 — 최대 A등급으로 제한</div>
       )}
 
